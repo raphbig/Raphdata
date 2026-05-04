@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TradeLog">
+<meta name="theme-color" content="#080d1a">
+<title>TradeLog · Raph</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080d1a;
+  --surface: #0f1726;
+  --surface2: #16203a;
+  --border: #1c2d4a;
+  --accent: #00e5ff;
+  --accent2: #7c3aed;
+  --green: #00e676;
+  --red: #ff1744;
+  --orange: #ff9100;
+  --text: #e8eaf0;
+  --muted: #3d5170;
+  --shadow: 0 4px 24px rgba(0,0,0,0.6);
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  font-family: 'Syne', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  max-width: 430px;
+  margin: 0 auto;
+  overflow-x: hidden;
+}
+
+/* HEADER */
+.app-header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(8,13,26,0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px 10px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.header-logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+.header-logo span { color: var(--accent); }
+.header-actions { display: flex; gap: 8px; }
+.icon-btn {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--muted); border-radius: 10px;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; cursor: pointer; transition: all 0.2s;
+}
+.icon-btn:active { transform: scale(0.9); }
+
+/* NAV */
+.nav-tabs {
+  display: flex; background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 61px; z-index: 99;
+}
+.nav-tab {
+  flex: 1; padding: 11px 4px 9px;
+  text-align: center; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.5px; color: var(--muted); cursor: pointer;
+  border-bottom: 2px solid transparent; transition: all 0.2s;
+  text-transform: uppercase;
+}
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nav-tab .tab-icon { font-size: 15px; display: block; margin-bottom: 2px; }
+
+/* PAGES */
+.page { display: none; padding: 14px; }
+.page.active { display: block; }
+
+/* STATS */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 13px 12px; position: relative; overflow: hidden;
+}
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 2px; background: var(--accent);
+}
+.stat-card.green::before { background: var(--green); }
+.stat-card.red::before { background: var(--red); }
+.stat-card.orange::before { background: var(--orange); }
+.stat-card.purple::before { background: var(--accent2); }
+.stat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 5px; font-weight: 700; }
+.stat-value { font-family: 'JetBrains Mono', monospace; font-size: 19px; font-weight: 700; line-height: 1; }
+.stat-value.pos { color: var(--green); }
+.stat-value.neg { color: var(--red); }
+.stat-value.neu { color: var(--text); }
+.stat-sub { font-size: 10px; color: var(--muted); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+.stat-wide {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 13px 15px; margin-bottom: 10px;
+}
+
+/* MONTH NAV */
+.month-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 14px; padding: 11px 15px;
+}
+.mnav-btn {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); border-radius: 8px; width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 14px; transition: all 0.15s;
+}
+.mnav-btn:active { transform: scale(0.88); background: var(--accent); color: var(--bg); }
+.month-label { font-size: 15px; font-weight: 700; }
+
+/* CALENDAR */
+.cal-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px; }
+.cal-header-row { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-bottom: 4px; }
+.cal-day-name { text-align: center; font-size: 9px; font-weight: 700; letter-spacing: 0.5px; color: var(--muted); padding: 3px 0; text-transform: uppercase; }
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+.cal-cell {
+  aspect-ratio: 1; border-radius: 8px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 11px; font-weight: 600;
+  background: var(--surface2); border: 1px solid var(--border);
+  transition: all 0.15s; position: relative; gap: 1px;
+}
+.cal-cell:active { transform: scale(0.9); }
+.cal-cell.empty { background: transparent; border-color: transparent; cursor: default; }
+.cal-cell.weekend { opacity: 0.45; }
+.cal-cell.today { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.cal-cell.mixed { background: rgba(0,229,255,0.1); border-color: rgba(0,229,255,0.4); color: var(--accent); }
+.cal-cell.all-win { background: rgba(0,230,118,0.15); border-color: rgba(0,230,118,0.4); color: var(--green); }
+.cal-cell.all-loss { background: rgba(255,23,68,0.15); border-color: rgba(255,23,68,0.4); color: var(--red); }
+.cal-cell.all-be { background: rgba(255,145,0,0.12); border-color: rgba(255,145,0,0.4); color: var(--orange); }
+.cell-pnl { font-size: 8px; font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+.cell-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+/* DAY SHEET */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.8); z-index: 200;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  align-items: flex-end; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: var(--surface); border-radius: 20px 20px 0 0;
+  padding: 0 0 env(safe-area-inset-bottom, 20px);
+  width: 100%; max-width: 430px; max-height: 92vh; overflow-y: auto;
+  border-top: 1px solid var(--border);
+  animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle { width: 40px; height: 4px; background: var(--muted); border-radius: 2px; margin: 12px auto 14px; opacity: 0.4; }
+.modal-title {
+  font-size: 15px; font-weight: 700; padding: 0 18px 13px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-body { padding: 14px 18px; display: flex; flex-direction: column; gap: 0; }
+
+/* SETUPS LIST IN MODAL */
+.setups-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.setup-card {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 11px 13px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  cursor: pointer; transition: all 0.15s;
+}
+.setup-card:active { transform: scale(0.98); }
+.setup-card-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.setup-time-badge {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 5px 8px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  color: var(--accent); flex-shrink: 0;
+}
+.setup-info { flex: 1; min-width: 0; }
+.setup-result-label { font-size: 11px; font-weight: 700; margin-bottom: 2px; }
+.setup-result-label.win { color: var(--green); }
+.setup-result-label.loss { color: var(--red); }
+.setup-result-label.be { color: var(--orange); }
+.setup-symbols { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.setup-pnl { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+.setup-pnl.pos { color: var(--green); }
+.setup-pnl.neg { color: var(--red); }
+.setup-pnl.neu { color: var(--orange); }
+.setup-del { font-size: 12px; color: var(--muted); padding: 4px; cursor: pointer; flex-shrink: 0; }
+.setup-del:active { color: var(--red); }
+
+.add-setup-btn {
+  width: 100%; padding: 12px;
+  background: transparent; border: 1.5px dashed var(--border);
+  color: var(--accent); border-radius: 12px;
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s; margin-bottom: 14px;
+  letter-spacing: 0.3px;
+}
+.add-setup-btn:active { background: rgba(0,229,255,0.05); }
+
+/* SETUP FORM */
+.setup-form {
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 14px; margin-bottom: 14px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.setup-form-title { font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: 0.5px; text-transform: uppercase; }
+
+.field-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 700; margin-bottom: 5px; }
+.field-input {
+  width: 100%; background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 11px 13px; color: var(--text);
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; outline: none;
+  transition: border-color 0.2s;
+}
+.field-input:focus { border-color: var(--accent); }
+.field-input::placeholder { color: var(--muted); }
+textarea.field-input { resize: none; height: 70px; font-family: 'Syne', sans-serif; font-size: 12px; }
+
+.result-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
+.result-btn {
+  padding: 10px 6px; border-radius: 10px; border: 1.5px solid var(--border);
+  background: var(--surface); color: var(--muted);
+  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s; text-align: center;
+}
+.result-btn:active { transform: scale(0.94); }
+.result-btn.win.active { background: rgba(0,230,118,0.2); border-color: var(--green); color: var(--green); }
+.result-btn.loss.active { background: rgba(255,23,68,0.2); border-color: var(--red); color: var(--red); }
+.result-btn.be.active { background: rgba(255,145,0,0.2); border-color: var(--orange); color: var(--orange); }
+
+.account-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.account-chip {
+  padding: 6px 11px; border-radius: 20px; border: 1.5px solid var(--border);
+  background: var(--surface); color: var(--muted); font-size: 10px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s; font-family: 'JetBrains Mono', monospace;
+}
+.account-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(0,229,255,0.1); }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.save-setup-btn {
+  width: 100%; padding: 12px; background: var(--accent); color: var(--bg);
+  border: none; border-radius: 10px; font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.15s;
+}
+.save-setup-btn:active { transform: scale(0.97); opacity: 0.9; }
+.cancel-btn {
+  width: 100%; padding: 10px; background: transparent; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 10px;
+  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+
+/* HISTORY */
+.trade-list { display: flex; flex-direction: column; gap: 8px; }
+.trade-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 11px 13px;
+}
+.trade-item-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.trade-date-label { font-size: 12px; font-weight: 700; }
+.trade-day-pnl { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; }
+.trade-day-pnl.pos { color: var(--green); }
+.trade-day-pnl.neg { color: var(--red); }
+.trade-day-pnl.neu { color: var(--orange); }
+.trade-setups { display: flex; flex-direction: column; gap: 5px; }
+.trade-setup-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; background: var(--surface2); border-radius: 8px;
+}
+.mini-badge {
+  font-size: 9px; font-weight: 700; padding: 3px 7px; border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace; flex-shrink: 0;
+}
+.mini-badge.win { background: rgba(0,230,118,0.2); color: var(--green); }
+.mini-badge.loss { background: rgba(255,23,68,0.2); color: var(--red); }
+.mini-badge.be { background: rgba(255,145,0,0.15); color: var(--orange); }
+.mini-time { font-size: 10px; color: var(--accent); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+.mini-sym { font-size: 10px; color: var(--muted); flex: 1; font-family: 'JetBrains Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini-pnl { font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+.mini-pnl.pos { color: var(--green); }
+.mini-pnl.neg { color: var(--red); }
+.mini-pnl.neu { color: var(--orange); }
+
+/* ACCOUNT FILTER */
+.account-filter { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; scrollbar-width: none; }
+.account-filter::-webkit-scrollbar { display: none; }
+.filter-chip {
+  padding: 6px 12px; border-radius: 20px; border: 1.5px solid var(--border);
+  background: var(--surface2); color: var(--muted); font-size: 10px; font-weight: 700;
+  cursor: pointer; white-space: nowrap; transition: all 0.15s;
+  font-family: 'JetBrains Mono', monospace; flex-shrink: 0;
+}
+.filter-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(0,229,255,0.1); }
+
+/* SETTINGS */
+.settings-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 15px; border-bottom: 1px solid var(--border); gap: 12px;
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-row-label { font-size: 13px; font-weight: 600; }
+.settings-row-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.settings-input {
+  background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px;
+  padding: 7px 10px; color: var(--text); font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; width: 110px; text-align: right; outline: none;
+}
+.settings-input:focus { border-color: var(--accent); }
+.section-hdr { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-weight: 700; margin-bottom: 8px; margin-top: 18px; padding-left: 2px; }
+.section-hdr:first-child { margin-top: 0; }
+.action-btn {
+  width: 100%; padding: 13px; border-radius: 12px;
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; margin-top: 6px;
+}
+.action-btn.primary { background: var(--surface2); color: var(--accent); border: 1.5px solid var(--border); }
+.action-btn.danger { background: transparent; color: var(--red); border: 1.5px solid rgba(255,23,68,0.3); }
+.action-btn:active { opacity: 0.8; transform: scale(0.98); }
+
+/* STREAK */
+.streak-bar { display: flex; gap: 3px; margin-top: 8px; }
+.streak-dot { flex: 1; height: 7px; border-radius: 2px; background: var(--surface2); }
+.streak-dot.win { background: var(--green); }
+.streak-dot.loss { background: var(--red); }
+.streak-dot.be { background: var(--orange); }
+.streak-dot.mixed { background: var(--accent); }
+
+/* PNL BARS */
+.pnl-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.pnl-bar-label { font-size: 10px; color: var(--muted); width: 30px; font-family: 'JetBrains Mono', monospace; }
+.pnl-bar-track { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+.pnl-bar-fill { height: 100%; border-radius: 3px; transition: width 0.7s cubic-bezier(0.16,1,0.3,1); }
+.pnl-bar-val { font-size: 10px; font-family: 'JetBrains Mono', monospace; width: 64px; text-align: right; }
+
+/* EMPTY */
+.empty-state { text-align: center; padding: 36px 20px; color: var(--muted); }
+.empty-icon { font-size: 34px; margin-bottom: 10px; }
+.empty-text { font-size: 12px; line-height: 1.6; }
+
+/* LEGEND */
+.legend { display: flex; gap: 12px; justify-content: center; margin-top: 10px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 9px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 80px; left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 11px 18px; font-size: 12px; font-weight: 600;
+  z-index: 300; transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+  white-space: nowrap; box-shadow: var(--shadow);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.success { border-color: var(--green); color: var(--green); }
+.toast.error { border-color: var(--red); color: var(--red); }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-logo">Trade<span>Log</span> · Raph</div>
+  <div class="header-actions">
+    <button class="icon-btn" onclick="exportData()">📤</button>
+    <button class="icon-btn" onclick="showTab('settings')">⚙️</button>
+  </div>
+</header>
+
+<nav class="nav-tabs">
+  <div class="nav-tab active" onclick="showTab('dashboard')" id="tab-dashboard"><span class="tab-icon">📊</span>Dashboard</div>
+  <div class="nav-tab" onclick="showTab('calendar')" id="tab-calendar"><span class="tab-icon">📅</span>Calendrier</div>
+  <div class="nav-tab" onclick="showTab('history')" id="tab-history"><span class="tab-icon">📋</span>Historique</div>
+  <div class="nav-tab" onclick="showTab('settings')" id="tab-settings"><span class="tab-icon">⚙️</span>Comptes</div>
+</nav>
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="account-filter" id="dash-filter"></div>
+  <div class="stats-grid">
+    <div class="stat-card green">
+      <div class="stat-label">P&L Mois</div>
+      <div class="stat-value" id="d-month-pnl">€0</div>
+      <div class="stat-sub" id="d-month-days">0 jours</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">Win Rate</div>
+      <div class="stat-value neu" id="d-winrate">0%</div>
+      <div class="stat-sub" id="d-wl">W:0 L:0 BE:0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">P&L Annuel</div>
+      <div class="stat-value" id="d-year-pnl">€0</div>
+      <div class="stat-sub" id="d-year-days">0 setups</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-label">Moy./Setup</div>
+      <div class="stat-value neu" id="d-avg">€0</div>
+      <div class="stat-sub" id="d-avg-sub">setups tradés</div>
+    </div>
+  </div>
+  <div class="stat-wide">
+    <div class="stat-label" style="margin-bottom:10px;">Meilleur setup · Pire setup</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div class="stat-value pos" id="d-best">€0</div>
+        <div class="stat-sub" id="d-best-date">—</div>
+      </div>
+      <div style="color:var(--border);font-size:18px;">|</div>
+      <div style="text-align:right;">
+        <div class="stat-value neg" id="d-worst">€0</div>
+        <div class="stat-sub" id="d-worst-date">—</div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-bottom:12px;">
+    <div class="section-hdr">30 derniers setups</div>
+    <div class="streak-bar" id="d-streak"></div>
+  </div>
+  <div>
+    <div class="section-hdr">P&L par compte</div>
+    <div class="stat-wide"><div id="d-per-account"></div></div>
+  </div>
+</div>
+
+<!-- CALENDAR -->
+<div class="page" id="page-calendar">
+  <div class="account-filter" id="cal-filter"></div>
+  <div class="month-nav">
+    <button class="mnav-btn" onclick="changeMonth(-1)">◀</button>
+    <div class="month-label" id="cal-month-label">—</div>
+    <button class="mnav-btn" onclick="changeMonth(1)">▶</button>
+  </div>
+  <div class="cal-wrap">
+    <div class="cal-header-row" id="cal-header"></div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:rgba(0,230,118,0.5)"></div>Tout WIN</div>
+    <div class="legend-item"><div class="legend-dot" style="background:rgba(255,23,68,0.5)"></div>Tout LOSS</div>
+    <div class="legend-item"><div class="legend-dot" style="background:rgba(0,229,255,0.4)"></div>Mixte</div>
+    <div class="legend-item"><div class="legend-dot" style="background:rgba(255,145,0,0.4)"></div>BE</div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="page" id="page-history">
+  <div class="account-filter" id="hist-filter"></div>
+  <div class="trade-list" id="hist-list"></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="page-settings">
+  <div class="section-hdr">Comptes TradeLocker</div>
+  <div class="settings-card" id="accounts-list"></div>
+  <button class="action-btn primary" onclick="addAccount()">+ Ajouter un compte</button>
+
+  <div class="section-hdr">Données</div>
+  <div class="settings-card">
+    <div class="settings-row">
+      <div><div class="settings-row-label">Exporter JSON</div><div class="settings-row-sub">Sauvegarde complète</div></div>
+      <button class="icon-btn" onclick="exportData()">📤</button>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-row-label">Importer JSON</div><div class="settings-row-sub">Restaurer une sauvegarde</div></div>
+      <button class="icon-btn" onclick="document.getElementById('import-input').click()">📥</button>
+    </div>
+  </div>
+  <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)">
+
+  <div class="section-hdr">Danger zone</div>
+  <button class="action-btn danger" onclick="clearAll()">🗑️ Effacer toutes les données</button>
+</div>
+
+<!-- DAY MODAL -->
+<div class="modal-overlay" id="day-modal" onclick="handleOverlayClick(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">
+      <span id="modal-date-label">—</span>
+      <button class="icon-btn" onclick="closeModal()" style="width:28px;height:28px;font-size:12px;">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Existing setups -->
+      <div class="setups-list" id="modal-setups-list"></div>
+      <!-- Add setup btn -->
+      <button class="add-setup-btn" id="modal-add-btn" onclick="showSetupForm()">+ Ajouter un setup</button>
+      <!-- Setup form (hidden by default) -->
+      <div class="setup-form" id="setup-form" style="display:none;">
+        <div class="setup-form-title" id="form-title">Nouveau setup</div>
+        <div>
+          <div class="field-label">Résultat</div>
+          <div class="result-btns">
+            <button class="result-btn win" onclick="setResult('win')" id="btn-win">✓ WIN</button>
+            <button class="result-btn loss" onclick="setResult('loss')" id="btn-loss">✗ LOSS</button>
+            <button class="result-btn be" onclick="setResult('be')" id="btn-be">— BE</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <div class="field-label">Heure</div>
+            <input class="field-input" type="time" id="form-time" value="08:00">
+          </div>
+          <div>
+            <div class="field-label">P&L (€)</div>
+            <input class="field-input" type="number" id="form-pnl" placeholder="ex: 250" step="0.01">
+          </div>
+        </div>
+        <div>
+          <div class="field-label">Compte</div>
+          <div class="account-chips" id="form-accounts"></div>
+        </div>
+        <div>
+          <div class="field-label">Instrument(s)</div>
+          <input class="field-input" type="text" id="form-symbols" placeholder="BTC, NAS100, XAUUSD…">
+        </div>
+        <div>
+          <div class="field-label">Notes</div>
+          <textarea class="field-input" id="form-notes" placeholder="Setup, émotions, leçons…"></textarea>
+        </div>
+        <button class="save-setup-btn" onclick="saveSetup()">✓ Sauvegarder ce setup</button>
+        <button class="cancel-btn" onclick="hideSetupForm()" style="margin-top:6px;">Annuler</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────
+// trades: { "YYYY-MM-DD": [ {id, time, result, pnl, account, symbols, notes}, ... ] }
+let state = {
+  trades: {},
+  accounts: ['A1','A2','A3','A4','A5'],
+  currentMonth: new Date().getMonth(),
+  currentYear: new Date().getFullYear(),
+  activeFilter: 'all',
+  modal: { date: null, editId: null, result: null, account: null }
+};
+
+// ── PERSISTENCE ───────────────────────────────────────────────────────────
+function save() { localStorage.setItem('tradelog_raph_v2', JSON.stringify({ trades: state.trades, accounts: state.accounts })); }
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem('tradelog_raph_v2') || '{}');
+    if (d.trades) state.trades = d.trades;
+    if (d.accounts && d.accounts.length) state.accounts = d.accounts;
+  } catch(e) {}
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+const el = id => document.getElementById(id);
+const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const DAYS_SHORT = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+const MONTHS_SHORT = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+
+function fmtDate(dateStr) {
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const dow = new Date(y, m-1, d).getDay();
+  return `${DAYS_SHORT[dow]} ${d} ${MONTHS_SHORT[m-1]} ${y}`;
+}
+function fmtPnl(n) { return (n >= 0 ? '+' : '') + '€' + parseFloat(n).toFixed(0); }
+function pnlColor(n) { return n > 0 ? 'pos' : n < 0 ? 'neg' : 'neu'; }
+function uid() { return Math.random().toString(36).slice(2,9); }
+
+// Day totals
+function dayTotal(dateStr) {
+  const setups = state.trades[dateStr] || [];
+  return setups.reduce((s, t) => s + (parseFloat(t.pnl) || 0), 0);
+}
+function dayColor(dateStr) {
+  const setups = state.trades[dateStr] || [];
+  if (!setups.length) return '';
+  const results = [...new Set(setups.map(s => s.result))];
+  if (results.length === 1) {
+    if (results[0] === 'win') return 'all-win';
+    if (results[0] === 'loss') return 'all-loss';
+    return 'all-be';
+  }
+  return 'mixed';
+}
+
+// Filtered setups (flat)
+function allSetups() {
+  const out = [];
+  Object.entries(state.trades).forEach(([date, setups]) => {
+    (setups || []).forEach(s => out.push({ ...s, date }));
+  });
+  return out;
+}
+function filteredSetups() {
+  return allSetups().filter(s => state.activeFilter === 'all' || s.account === state.activeFilter);
+}
+function filteredDays() {
+  // returns { date: [setups] } filtered
+  const out = {};
+  Object.entries(state.trades).forEach(([date, setups]) => {
+    const filtered = (setups || []).filter(s => state.activeFilter === 'all' || s.account === state.activeFilter);
+    if (filtered.length) out[date] = filtered;
+  });
+  return out;
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────
+function showTab(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  el('page-' + tab).classList.add('active');
+  el('tab-' + tab).classList.add('active');
+  buildAllFilters();
+  if (tab === 'dashboard') renderDashboard();
+  if (tab === 'calendar') renderCalendar();
+  if (tab === 'history') renderHistory();
+  if (tab === 'settings') renderSettings();
+}
+
+// ── FILTERS ───────────────────────────────────────────────────────────────
+function buildAllFilters() {
+  ['dash-filter','cal-filter','hist-filter'].forEach(id => buildFilter(id));
+}
+function buildFilter(containerId) {
+  const c = el(containerId); if (!c) return;
+  c.innerHTML = '';
+  ['all', ...state.accounts].forEach(a => {
+    const chip = document.createElement('div');
+    chip.className = 'filter-chip' + (state.activeFilter === a ? ' active' : '');
+    chip.textContent = a === 'all' ? 'Tous' : a;
+    chip.onclick = () => { state.activeFilter = a; buildAllFilters(); refreshActive(); };
+    c.appendChild(chip);
+  });
+}
+function refreshActive() {
+  const active = document.querySelector('.page.active');
+  if (!active) return;
+  const id = active.id.replace('page-','');
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'calendar') renderCalendar();
+  if (id === 'history') renderHistory();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const now = new Date();
+  const monthKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const yearKey = `${now.getFullYear()}`;
+  const setups = filteredSetups();
+
+  let mPnl=0, mSetups=0, mW=0, mL=0, mBE=0;
+  let yPnl=0, ySetups=0;
+  let bestPnl=-Infinity, bestDate='', worstPnl=Infinity, worstDate='';
+
+  setups.forEach(s => {
+    const pnl = parseFloat(s.pnl) || 0;
+    if (s.date.startsWith(yearKey)) {
+      yPnl += pnl; ySetups++;
+      if (pnl > bestPnl) { bestPnl = pnl; bestDate = s.date + ' ' + (s.time||''); }
+      if (pnl < worstPnl) { worstPnl = pnl; worstDate = s.date + ' ' + (s.time||''); }
+    }
+    if (s.date.startsWith(monthKey)) {
+      mPnl += pnl; mSetups++;
+      if (s.result === 'win') mW++;
+      else if (s.result === 'loss') mL++;
+      else mBE++;
+    }
+  });
+
+  const wr = mSetups > 0 ? Math.round(mW/mSetups*100) : 0;
+  const avg = ySetups > 0 ? yPnl/ySetups : 0;
+
+  el('d-month-pnl').textContent = fmtPnl(mPnl);
+  el('d-month-pnl').className = 'stat-value ' + pnlColor(mPnl);
+  el('d-month-days').textContent = mSetups + ' setup' + (mSetups>1?'s':'');
+  el('d-winrate').textContent = wr + '%';
+  el('d-wl').textContent = `W:${mW} L:${mL} BE:${mBE}`;
+  el('d-year-pnl').textContent = fmtPnl(yPnl);
+  el('d-year-pnl').className = 'stat-value ' + pnlColor(yPnl);
+  el('d-year-days').textContent = ySetups + ' setups';
+  el('d-avg').textContent = fmtPnl(avg);
+  el('d-avg').className = 'stat-value ' + pnlColor(avg);
+  el('d-avg-sub').textContent = ySetups + ' setups';
+  el('d-best').textContent = bestDate ? fmtPnl(bestPnl) : '€0';
+  el('d-best-date').textContent = bestDate ? bestDate : '—';
+  el('d-worst').textContent = worstDate ? fmtPnl(worstPnl) : '€0';
+  el('d-worst-date').textContent = worstDate ? worstDate : '—';
+
+  // Streak
+  const sb = el('d-streak'); sb.innerHTML = '';
+  const last30 = setups.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(-30);
+  if (!last30.length) { sb.innerHTML = '<div style="font-size:10px;color:var(--muted)">Aucune donnée</div>'; }
+  else last30.forEach(s => {
+    const d = document.createElement('div');
+    d.className = 'streak-dot ' + (s.result||'be');
+    sb.appendChild(d);
+  });
+
+  // Per account
+  const pa = el('d-per-account'); pa.innerHTML = '';
+  const accPnl = {};
+  state.accounts.forEach(a => accPnl[a] = 0);
+  allSetups().forEach(s => { if (s.account && accPnl[s.account] !== undefined) accPnl[s.account] += parseFloat(s.pnl)||0; });
+  const maxV = Math.max(...Object.values(accPnl).map(Math.abs), 1);
+  state.accounts.forEach(a => {
+    const pnl = accPnl[a];
+    const color = pnl > 0 ? 'var(--green)' : pnl < 0 ? 'var(--red)' : 'var(--muted)';
+    const row = document.createElement('div');
+    row.className = 'pnl-bar-row';
+    row.innerHTML = `<div class="pnl-bar-label">${a}</div><div class="pnl-bar-track"><div class="pnl-bar-fill" style="width:${Math.abs(pnl)/maxV*100}%;background:${color}"></div></div><div class="pnl-bar-val" style="color:${color}">${fmtPnl(pnl)}</div>`;
+    pa.appendChild(row);
+  });
+}
+
+// ── CALENDAR ──────────────────────────────────────────────────────────────
+function renderCalendar() {
+  el('cal-month-label').textContent = `${MONTHS[state.currentMonth]} ${state.currentYear}`;
+  const hdr = el('cal-header'); hdr.innerHTML = '';
+  ['L','M','M','J','V','S','D'].forEach(d => {
+    const div = document.createElement('div'); div.className = 'cal-day-name'; div.textContent = d; hdr.appendChild(div);
+  });
+  const grid = el('cal-grid'); grid.innerHTML = '';
+  const firstDow = new Date(state.currentYear, state.currentMonth, 1).getDay();
+  const startOffset = firstDow === 0 ? 6 : firstDow - 1;
+  const daysInMonth = new Date(state.currentYear, state.currentMonth+1, 0).getDate();
+  const today = new Date();
+  const days = filteredDays();
+
+  for (let i=0; i<startOffset; i++) { const e=document.createElement('div'); e.className='cal-cell empty'; grid.appendChild(e); }
+
+  for (let d=1; d<=daysInMonth; d++) {
+    const dateStr = `${state.currentYear}-${String(state.currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const setups = days[dateStr] || [];
+    const cell = document.createElement('div');
+    const dow = new Date(state.currentYear, state.currentMonth, d).getDay();
+    cell.className = 'cal-cell' + (dow===0||dow===6?' weekend':'');
+    const isToday = d===today.getDate() && state.currentMonth===today.getMonth() && state.currentYear===today.getFullYear();
+    if (isToday) cell.classList.add('today');
+    if (setups.length) {
+      cell.classList.add(dayColor(dateStr));
+      const total = setups.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);
+      cell.innerHTML = `<span>${d}</span><span class="cell-pnl">${total!==0?(total>0?'+':'')+total.toFixed(0):'BE'}</span>`;
+      if (setups.length > 1) {
+        const badge = document.createElement('span');
+        badge.style.cssText = 'font-size:7px;opacity:0.7;font-family:JetBrains Mono,monospace;';
+        badge.textContent = setups.length+'s';
+        cell.appendChild(badge);
+      }
+    } else {
+      cell.textContent = d;
+    }
+    cell.onclick = () => openModal(dateStr);
+    grid.appendChild(cell);
+  }
+}
+
+function changeMonth(dir) {
+  state.currentMonth += dir;
+  if (state.currentMonth > 11) { state.currentMonth=0; state.currentYear++; }
+  if (state.currentMonth < 0) { state.currentMonth=11; state.currentYear--; }
+  renderCalendar();
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────────────
+function renderHistory() {
+  const list = el('hist-list'); list.innerHTML = '';
+  const days = filteredDays();
+  const sorted = Object.keys(days).sort().reverse();
+  if (!sorted.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">Aucun setup enregistré.<br>Appuie sur un jour dans le calendrier.</div></div>`;
+    return;
+  }
+  sorted.forEach(date => {
+    const setups = days[date].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    const total = setups.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);
+    const item = document.createElement('div'); item.className = 'trade-item';
+    item.innerHTML = `
+      <div class="trade-item-header">
+        <div class="trade-date-label">${fmtDate(date)}</div>
+        <div class="trade-day-pnl ${pnlColor(total)}">${fmtPnl(total)}</div>
+      </div>
+      <div class="trade-setups">
+        ${setups.map(s => {
+          const pnl = parseFloat(s.pnl)||0;
+          return `<div class="trade-setup-row">
+            <span class="mini-time">${s.time||'--:--'}</span>
+            <span class="mini-badge ${s.result||'be'}">${(s.result||'be').toUpperCase()}</span>
+            <span class="mini-sym">${s.symbols||'—'} ${s.account?'· '+s.account:''}</span>
+            <span class="mini-pnl ${pnlColor(pnl)}">${pnl!==0?fmtPnl(pnl):'BE'}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+    item.onclick = () => openModal(date);
+    list.appendChild(item);
+  });
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────────────────
+function renderSettings() {
+  const list = el('accounts-list'); list.innerHTML = '';
+  state.accounts.forEach((a, i) => {
+    const row = document.createElement('div'); row.className = 'settings-row';
+    row.innerHTML = `
+      <div><div class="settings-row-label">Compte ${i+1}</div><div class="settings-row-sub">TradeLocker · Whales Capital</div></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input class="settings-input" value="${a}" onchange="renameAccount(${i},this.value)" maxlength="10">
+        <button class="icon-btn" onclick="removeAccount(${i})" style="width:28px;height:28px;font-size:11px;color:var(--red);">✕</button>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+function renameAccount(i, val) {
+  const old = state.accounts[i]; state.accounts[i] = val.trim()||old;
+  allSetups().forEach(s => { if (s.account===old) { const d=state.trades[s.date]; const t=d.find(x=>x.id===s.id); if(t) t.account=state.accounts[i]; } });
+  save(); toast('Compte renommé','success');
+}
+function addAccount() {
+  if (state.accounts.length>=10) { toast('Max 10 comptes','error'); return; }
+  state.accounts.push('A'+(state.accounts.length+1)); save(); renderSettings();
+}
+function removeAccount(i) {
+  if (state.accounts.length<=1) { toast('Au moins 1 compte','error'); return; }
+  state.accounts.splice(i,1); save(); renderSettings();
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────
+function openModal(dateStr) {
+  state.modal.date = dateStr;
+  state.modal.editId = null;
+  state.modal.result = null;
+  state.modal.account = state.accounts[0] || null;
+  el('modal-date-label').textContent = fmtDate(dateStr);
+  hideSetupForm();
+  renderModalSetups();
+  el('day-modal').classList.add('open');
+}
+function closeModal() { el('day-modal').classList.remove('open'); }
+function handleOverlayClick(e) { if (e.target===el('day-modal')) closeModal(); }
+
+function renderModalSetups() {
+  const list = el('modal-setups-list'); list.innerHTML = '';
+  const setups = (state.trades[state.modal.date]||[]).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  setups.forEach(s => {
+    const pnl = parseFloat(s.pnl)||0;
+    const card = document.createElement('div'); card.className = 'setup-card';
+    card.innerHTML = `
+      <div class="setup-card-left">
+        <div class="setup-time-badge">${s.time||'--:--'}</div>
+        <div class="setup-info">
+          <div class="setup-result-label ${s.result||'be'}">${(s.result||'be').toUpperCase()} ${s.account?'· '+s.account:''}</div>
+          <div class="setup-symbols">${s.symbols||'—'}</div>
+        </div>
+      </div>
+      <div class="setup-pnl ${pnlColor(pnl)}">${pnl!==0?fmtPnl(pnl):'BE'}</div>
+      <div class="setup-del" onclick="deleteSetup('${s.id}',event)">🗑️</div>
+    `;
+    card.onclick = (e) => { if (e.target.classList.contains('setup-del')) return; editSetup(s); };
+    list.appendChild(card);
+  });
+}
+
+function showSetupForm(prefillTime) {
+  state.modal.editId = null;
+  state.modal.result = null;
+  state.modal.account = state.accounts[0]||null;
+  el('form-title').textContent = 'Nouveau setup';
+  el('form-time').value = prefillTime || '08:00';
+  el('form-pnl').value = '';
+  el('form-symbols').value = '';
+  el('form-notes').value = '';
+  ['win','loss','be'].forEach(r => el('btn-'+r).classList.remove('active'));
+  buildFormAccounts();
+  el('setup-form').style.display = 'flex';
+  el('setup-form').style.flexDirection = 'column';
+  el('modal-add-btn').style.display = 'none';
+  el('setup-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function editSetup(s) {
+  state.modal.editId = s.id;
+  state.modal.result = s.result;
+  state.modal.account = s.account;
+  el('form-title').textContent = 'Modifier le setup';
+  el('form-time').value = s.time||'08:00';
+  el('form-pnl').value = parseFloat(s.pnl)||'';
+  el('form-symbols').value = s.symbols||'';
+  el('form-notes').value = s.notes||'';
+  ['win','loss','be'].forEach(r => el('btn-'+r).classList.toggle('active', r===s.result));
+  buildFormAccounts();
+  el('setup-form').style.display = 'flex';
+  el('setup-form').style.flexDirection = 'column';
+  el('modal-add-btn').style.display = 'none';
+  el('setup-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function hideSetupForm() {
+  el('setup-form').style.display = 'none';
+  el('modal-add-btn').style.display = 'block';
+}
+
+function buildFormAccounts() {
+  const c = el('form-accounts'); c.innerHTML = '';
+  state.accounts.forEach(a => {
+    const chip = document.createElement('div');
+    chip.className = 'account-chip' + (state.modal.account===a?' active':'');
+    chip.textContent = a;
+    chip.onclick = () => { state.modal.account=a; c.querySelectorAll('.account-chip').forEach(x=>x.classList.remove('active')); chip.classList.add('active'); };
+    c.appendChild(chip);
+  });
+}
+
+function setResult(r) {
+  state.modal.result = r;
+  ['win','loss','be'].forEach(x => el('btn-'+x).classList.toggle('active', x===r));
+}
+
+function saveSetup() {
+  if (!state.modal.result) { toast('Choisis un résultat','error'); return; }
+  const setup = {
+    id: state.modal.editId || uid(),
+    time: el('form-time').value || '08:00',
+    result: state.modal.result,
+    pnl: el('form-pnl').value || '0',
+    account: state.modal.account || state.accounts[0],
+    symbols: el('form-symbols').value.trim(),
+    notes: el('form-notes').value.trim()
+  };
+  if (!state.trades[state.modal.date]) state.trades[state.modal.date] = [];
+  if (state.modal.editId) {
+    const idx = state.trades[state.modal.date].findIndex(s=>s.id===state.modal.editId);
+    if (idx >= 0) state.trades[state.modal.date][idx] = setup;
+  } else {
+    state.trades[state.modal.date].push(setup);
+  }
+  save();
+  hideSetupForm();
+  renderModalSetups();
+  renderCalendar();
+  renderDashboard();
+  toast('Setup sauvegardé ✓','success');
+}
+
+function deleteSetup(id, e) {
+  e.stopPropagation();
+  if (!state.trades[state.modal.date]) return;
+  state.trades[state.modal.date] = state.trades[state.modal.date].filter(s=>s.id!==id);
+  if (!state.trades[state.modal.date].length) delete state.trades[state.modal.date];
+  save(); renderModalSetups(); renderCalendar(); renderDashboard();
+  toast('Setup supprimé','success');
+}
+
+// ── EXPORT / IMPORT ───────────────────────────────────────────────────────
+function exportData() {
+  const blob = new Blob([JSON.stringify({trades:state.trades,accounts:state.accounts},null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `tradelog-raph-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); toast('Export réussi 📤','success');
+}
+function importData(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = evt => {
+    try {
+      const d = JSON.parse(evt.target.result);
+      if (d.trades) state.trades = d.trades;
+      if (d.accounts) state.accounts = d.accounts;
+      save(); toast('Import réussi 📥','success');
+      renderDashboard(); renderCalendar();
+    } catch { toast('Fichier invalide','error'); }
+  };
+  r.readAsText(file); e.target.value = '';
+}
+function clearAll() {
+  if (!confirm('Effacer toutes les données ? Irréversible.')) return;
+  state.trades = {}; save(); toast('Données effacées','success');
+  renderDashboard(); renderCalendar();
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type='success') {
+  const t = el('toast'); t.textContent = msg; t.className = 'toast show ' + type;
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+load();
+buildAllFilters();
+renderDashboard();
+renderCalendar();
+</script>
+</body>
+</html>
